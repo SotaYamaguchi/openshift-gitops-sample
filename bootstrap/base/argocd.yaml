@@ -14,11 +14,45 @@ spec:
       p, role:readonly, repositories, get, *, allow
       p, role:readonly, projects, get, *, allow
     defaultPolicy: role:readonly
+  ha:
+    enabled: false
+  controller:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  applicationSet:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
   repo:
     resources:
       requests:
-        cpu: 250m
-        memory: 256Mi
+        cpu: 100m
+        memory: 128Mi
       limits:
-        cpu: "1"
-        memory: 1Gi
+        cpu: 500m
+        memory: 512Mi
+  dex:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
+  redis:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
