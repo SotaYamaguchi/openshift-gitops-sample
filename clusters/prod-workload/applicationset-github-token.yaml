@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: workload-apps
+  namespace: openshift-gitops
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - matrix:
+        generators:
+          - scmProvider:
+              github:
+                organization: your-org  # TODO: Set actual org
+                tokenRef:
+                  secretName: github-token  # TODO: Create this secret
+                  key: token
+              filters:
+                - repositoryMatch: "^app-.*"  # TODO: Adjust pattern
+          - git:
+              repoURL: '{{ .url }}'
+              revision: '{{ .branch }}'
+              directories:
+                - path: 'deploy/overlays/prod'
+  template:
+    metadata:
+      name: 'app-{{ .repository }}'
+      namespace: openshift-gitops
+    spec:
+      project: default
+      source:
+        repoURL: '{{ .url }}'
+        targetRevision: '{{ .branch }}'
+        path: 'deploy/overlays/prod'
+      destination:
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

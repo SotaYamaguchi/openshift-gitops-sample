@@ -1,0 +1,11 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: quay-operator
+  namespace: openshift-operators
+spec:
+  channel: stable-3.15
+  installPlanApproval: Automatic  # TODO: Set actual value
+  name: quay-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

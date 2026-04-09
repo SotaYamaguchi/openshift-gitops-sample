@@ -1,0 +1,26 @@
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: quay
+  namespace: quay-enterprise
+spec:
+  configBundleSecret: quay-config-bundle  # TODO: Create this secret
+  components:
+    - kind: objectstorage
+      managed: false  # Uses external S3
+    - kind: clair
+      managed: true
+    - kind: postgres
+      managed: true
+    - kind: redis
+      managed: true
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: mirror
+      managed: true
+    - kind: monitoring
+      managed: true
+    - kind: tls
+      managed: false  # Uses cert-manager
+    - kind: route
+      managed: true

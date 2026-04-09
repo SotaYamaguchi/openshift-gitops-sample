@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: argocd
+  namespace: openshift-gitops
+spec:
+  server:
+    autoscale:
+      enabled: false
+    grpc:
+      ingress:
+        enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: true
+      tls:
+        termination: reencrypt
+    service:
+      type: ClusterIP
+  resourceExclusions: | # TODO: Set actual value
+    - apiGroups:
+        - tekton.dev
+      clusters:
+        - '*'
+      kinds:
+        - TaskRun
+        - PipelineRun
+  rbac:
+    defaultPolicy: role:readonly
+    policy: | # TODO: Set actual value
+      g, system:cluster-admins, role:admin
+    scopes: '[groups]'
+  repo:
+    resources:
+      limits:
+        cpu: "1" # TODO: Set actual value
+        memory: 1Gi # TODO: Set actual value
+      requests:
+        cpu: 250m # TODO: Set actual value
+        memory: 256Mi # TODO: Set actual value
+  ha:
+    enabled: false
+  applicationSet:
+    resources:
+      limits:
+        cpu: "1" # TODO: Set actual value
+        memory: 1Gi # TODO: Set actual value
+      requests:
+        cpu: 250m # TODO: Set actual value
+        memory: 256Mi # TODO: Set actual value
+  controller:
+    resources:
+      limits:
+        cpu: "2" # TODO: Set actual value
+        memory: 2Gi # TODO: Set actual value
+      requests:
+        cpu: 250m # TODO: Set actual value
+        memory: 1Gi # TODO: Set actual value

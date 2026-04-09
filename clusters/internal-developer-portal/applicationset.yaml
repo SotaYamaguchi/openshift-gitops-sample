@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-apps
+  namespace: openshift-gitops
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: &repo https://github.com/your-org/platform-gitops.git  # TODO: Set actual repo URL
+        revision: &rev main
+        directories:
+          - path: 'apps/*/*/overlays/all'
+          - path: 'apps/*/*/overlays/hub'
+          - path: 'apps/*/*/overlays/internal-developer-portal'
+  template:
+    metadata:
+      name: '{{ index .path.segments 1 }}-{{ index .path.segments 2 }}'
+      namespace: openshift-gitops
+    spec:
+      project: default
+      source:
+        repoURL: *repo
+        targetRevision: *rev
+        path: '{{ .path.path }}'
+      destination:
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
