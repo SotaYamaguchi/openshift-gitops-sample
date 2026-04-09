@@ -141,7 +141,7 @@ Each `applicationset.yaml` uses a Git directory generator to discover overlays.
 # clusters/dev-workload/applicationset.yaml
 generators:
   - git:
-      repoURL: &repo https://github.com/your-org/platform-gitops.git
+      repoURL: &repo https://github.com/tarosaiba/openshift-gitops-sample.git
       revision: &rev main
       directories:
         - path: apps/*/*/overlays/all            # L1: all clusters

@@ -4,7 +4,7 @@ kind: Component
 patches:
   - target:
       kind: ArgoCD
-      name: argocd
+      name: openshift-gitops
     patch: |-
       - op: add
         path: /spec/notifications
