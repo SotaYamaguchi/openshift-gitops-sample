@@ -14,12 +14,12 @@ Gerald Nunn 氏は Red Hat で OpenShift GitOps の技術マーケティング�
 
 ```
 ┌─────────────────────┐  ┌─────────────────────┐
-│ IDP (Hub)           │  │ dev-workload         │
+│ idp-cluster (Hub)   │  │ dev-cluster          │
 │  ArgoCD -> self     │  │  ArgoCD -> self      │
 │  core/ + hub/       │  │  core/ + workload/   │
 └─────────────────────┘  └─────────────────────┘
 ┌─────────────────────┐  ┌─────────────────────┐
-│ stg-workload        │  │ prod-workload        │
+│ stg-cluster         │  │ prod-cluster         │
 │  ArgoCD -> self     │  │  ArgoCD -> self      │
 │  core/ + workload/  │  │  core/ + workload/   │
 └─────────────────────┘  └─────────────────────┘
@@ -33,10 +33,9 @@ ApplicationSet の Git directory generator が overlay のディレクトリ名�
 
 | Overlay 名 | 粒度 | 適用先 |
 |---|---|---|
-| `all` | 全クラスタ | IDP, dev, stg, prod |
-| `hub` / `workload` | クラスタ種別 | hub -> IDP のみ, workload -> dev + stg + prod |
-| `workload-dev` / `workload-prod` | 種別 + 環境 | 特定環境 |
-| `internal-developer-portal` / `dev-workload` | クラスタ固有 | 特定クラスタのみ |
+| `all` | 全クラスタ | idp, dev, stg, prod |
+| `hub` | クラスタ種別 | idp-cluster のみ |
+| `dev-cluster` / `stg-cluster` / `prod-cluster` | クラスタ固有 | 特定クラスタのみ |
 
 Gerald Nunn 氏がこの設計について述べているように、**どのアプリケーションがどのクラスタにデプロイされるかは、シンプルな `ls` コマンドで確認できます**。DRY 原則よりも可読性を重視した設計です。
 
@@ -83,10 +82,10 @@ apps/<tier>/<component>/
 
 | クラスタ | 役割 | Tier |
 |---|---|---|
-| internal-developer-portal | Hub クラスタ。Developer Hub, Quay, Pipelines 等の管理サービスをホスト | core + hub |
-| dev-workload | 開発環境ワークロード | core + workload |
-| stg-workload | ステージング環境ワークロード | core + workload |
-| prod-workload | 本番環境ワークロード | core + workload |
+| idp-cluster | Hub クラスタ。Developer Hub, Quay, Pipelines 等の管理サービスをホスト | core + hub |
+| dev-cluster | 開発環境ワークロード | core + workload |
+| stg-cluster | ステージング環境ワークロード | core + workload |
+| prod-cluster | 本番環境ワークロード | core + workload |
 
 ## プラットフォームコンポーネント
 
@@ -132,7 +131,7 @@ apps/<tier>/<component>/
 oc apply -k bootstrap/overlays/<cluster-name>/
 
 # 例: IDP クラスタ
-oc apply -k bootstrap/overlays/internal-developer-portal/
+oc apply -k bootstrap/overlays/idp-cluster/
 ```
 
 ブートストラップ後の流れ:
@@ -155,7 +154,7 @@ mkdir -p apps/<tier>/<component>/overlays/<target>
 # 3. 完了。ApplicationSet が自動検出する
 ```
 
-**重要: 1 つのコンポーネントに対して、同じクラスタにマッチする overlay を複数作成しないでください。** 例えば `overlays/all/` と `overlays/dev-workload/` が両方存在すると、dev-workload クラスタに 2 つの Application が生成され競合します。
+**重要: 1 つのコンポーネントに対して、同じクラスタにマッチする overlay を複数作成しないでください。** 例えば `overlays/all/` と `overlays/dev-cluster/` が両方存在すると、dev-cluster に 2 つの Application が生成され競合します。
 
 ## マニフェストの検証
 

@@ -12,8 +12,7 @@ spec:
         revision: &rev main
         directories:
           - path: 'apps/*/*/overlays/all'
-          - path: 'apps/*/*/overlays/hub'
-          - path: 'apps/*/*/overlays/internal-developer-portal'
+          - path: 'apps/*/*/overlays/prod-cluster'
   template:
     metadata:
       name: '{{ index .path.segments 1 }}-{{ index .path.segments 2 }}'

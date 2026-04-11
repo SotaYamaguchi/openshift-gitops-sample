@@ -3,4 +3,4 @@ kind: Kustomization
 
 resources:
   - ../../base
-  - ../../../clusters/dev-workload/
+  - ../../../clusters/prod-cluster/

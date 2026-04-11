@@ -12,9 +12,7 @@ spec:
         revision: &rev main
         directories:
           - path: 'apps/*/*/overlays/all'
-          - path: 'apps/*/*/overlays/workload'
-          - path: 'apps/*/*/overlays/workload-prod'
-          - path: 'apps/*/*/overlays/prod-workload'
+          - path: 'apps/*/*/overlays/dev-cluster'
   template:
     metadata:
       name: '{{ index .path.segments 1 }}-{{ index .path.segments 2 }}'

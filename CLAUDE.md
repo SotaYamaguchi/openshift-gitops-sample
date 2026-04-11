@@ -12,7 +12,7 @@ See [docs/architecture.md](docs/architecture.md) for full details.
 bootstrap/          # Installs ArgoCD on each cluster and applies its ApplicationSet
 apps/               # Platform component definitions
   core/             #   Common infrastructure for all clusters
-  hub/              #   IDP cluster only (Backstage, Keycloak, Quay, etc.)
+  hub/              #   IDP cluster only (Backstage, Quay, etc.)
   workload/         #   Workload clusters only (AMQ Streams, etc.)
 clusters/           # Per-cluster ApplicationSets
 components/         # Shared Kustomize Components
@@ -25,15 +25,15 @@ docs/               # Documentation
 
 | Cluster | Role |
 |---|---|
-| internal-developer-portal | Hub — Backstage, Keycloak, Quay |
-| dev-workload | Development workloads |
-| stg-workload | Staging workloads |
-| prod-workload | Production workloads |
+| idp-cluster | Hub — Developer Hub, Quay, Pipelines, ACS |
+| dev-cluster | Development workloads |
+| stg-cluster | Staging workloads |
+| prod-cluster | Production workloads |
 
 ## Key conventions
 
 - Each component follows `base/ + components/ + overlays/` Kustomize pattern
-- Overlay names control scope: `all`, `hub`/`workload`, `workload-dev`, or cluster name
+- Overlay names control scope: `all`, `hub`, or cluster name (`dev-cluster`, etc.)
 - A component must not have more than one overlay matching the same cluster
 - ArgoCD on each cluster targets only itself (`https://kubernetes.default.svc`)
 - ApplicationSets use Git directory generator to auto-discover overlays

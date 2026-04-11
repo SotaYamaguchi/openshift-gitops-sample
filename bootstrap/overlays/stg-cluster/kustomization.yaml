@@ -3,4 +3,4 @@ kind: Kustomization
 
 resources:
   - ../../base
-  - ../../../clusters/stg-workload/
+  - ../../../clusters/stg-cluster/

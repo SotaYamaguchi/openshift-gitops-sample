@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "okp-mcp": {
+      "type": "http",
+      "url": "http://10.64.200.140:8000/mcp"
+    }
+  }
+}
