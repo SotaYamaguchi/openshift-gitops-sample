@@ -1,0 +1,6 @@
+apiVersion: trustification.redhat.com/v1alpha1
+kind: Trustification
+metadata:
+  name: trustification
+  namespace: trusted-profile-analyzer
+spec: {}
