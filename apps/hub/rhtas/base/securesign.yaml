@@ -1,0 +1,79 @@
+apiVersion: rhtas.redhat.com/v1alpha1
+kind: Securesign
+metadata:
+  name: securesign
+  namespace: trusted-artifact-signer
+  labels:
+    app.kubernetes.io/instance: securesign
+    app.kubernetes.io/name: securesign
+    app.kubernetes.io/part-of: trusted-artifact-signer
+spec:
+  trillian:
+    database:
+      create: true
+      pvc:
+        accessModes:
+          - ReadWriteOnce
+        retain: true
+        size: 5Gi
+      tls: {}
+    monitoring:
+      enabled: false
+  fulcio:
+    certificate:
+      commonName: fulcio.hostname
+      organizationEmail: jdoe@redhat.com # TODO: Set actual value
+      organizationName: Red Hat # TODO: Set actual value
+    config:
+      OIDCIssuers:
+        - ClientID: trusted-artifact-signer
+          Issuer: https://keycloak.example.com/auth/realms/openshift # TODO: Set actual OIDC issuer URL
+          IssuerURL: https://keycloak.example.com/auth/realms/openshift # TODO: Set actual OIDC issuer URL
+          Type: email
+    ctlog:
+      port: 80
+      prefix: trusted-artifact-signer
+    externalAccess:
+      enabled: true
+    monitoring:
+      enabled: false
+  rekor:
+    externalAccess:
+      enabled: true
+    monitoring:
+      enabled: false
+    pvc:
+      accessModes:
+        - ReadWriteOnce
+      retain: true
+      size: 5Gi
+    rekorSearchUI:
+      enabled: true
+    sharding: []
+    signer:
+      kms: secret
+    trillian:
+      port: 8091
+    backFillRedis:
+      enabled: true
+      schedule: "0 0 * * *"
+  ctlog:
+    trillian:
+      port: 8091
+    monitoring:
+      enabled: false
+  tuf:
+    externalAccess:
+      enabled: true
+    keys:
+      - name: rekor.pub
+      - name: ctfe.pub
+      - name: fulcio_v1.crt.pem
+    port: 80
+    pvc:
+      accessModes:
+        - ReadWriteOnce
+      retain: true
+      size: 100Mi
+    rootKeySecretRef:
+      name: tuf-root-keys
