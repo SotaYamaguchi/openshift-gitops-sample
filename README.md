@@ -43,9 +43,9 @@ Gerald Nunn 氏がこの設計について述べているように、**どのア
 
 コンポーネントの配置先は「もう 1 つクラスタを追加したとき、そのコンポーネントも必要か？」で判断します。
 
-- **core/** -- 全クラスタに必要なインフラ（ArgoCD, cert-manager, external-secrets, RBAC, etc.）
-- **hub/** -- IDP クラスタのみで必要な管理サービス（Developer Hub, Quay, Pipelines, ACS, etc.）
-- **workload/** -- ワークロードクラスタのみで必要なもの（AMQ Streams, Grafana, ALB Operator, etc.）
+- **core/** -- 全クラスタに必要なインフラ（OpenShift GitOps, Pipelines, 監視, RBAC）
+- **hub/** -- IDP クラスタのみで必要な管理サービス（Developer Hub, Quay, ACS, TAS, TPA）
+- **workload/** -- ワークロードクラスタのみで必要なもの（Service Mesh, アプリケーション）
 
 #### 4. base / components / overlays パターン
 
@@ -59,8 +59,36 @@ apps/<tier>/<component>/
 ```
 
 - **base/** -- Operator Subscription, CRD インスタンス, Namespace 等
-- **components/** -- 有効/無効を選択できる機能モジュール（例: ArgoCD の notifications, image-updater）
-- **overlays/** -- クラスタ固有のドメイン名、認証情報、リソース制限等をオーバーライド
+- **components/** -- 有効/無効を選択できる機能モジュール（例: ArgoCD の notifications, ha, monitoring）
+- **overlays/** -- クラスタ固有の設定やオプション機能の組み合わせ
+
+#### 5. Kustomize Components による機能の組み合わせ
+
+`openshift-gitops` コンポーネントは、base を最小構成にし、3つの Component で環境ごとに異なる機能セットを構成するサンプルです。
+
+```
+apps/core/openshift-gitops/
+├── base/argocd.yaml                   # 全機能 disabled の最小構成
+├── components/
+│   ├── notifications/                 # Sync 通知の有効化
+│   ├── ha/                            # HA 構成 (controller sharding)
+│   └── monitoring/                    # Prometheus メトリクス収集
+└── overlays/
+    ├── dev-cluster/                   # notifications
+    ├── stg-cluster/                   # notifications + monitoring
+    ├── prod-cluster/                  # notifications + ha + monitoring
+    └── idp-cluster/                   # notifications + monitoring
+```
+
+#### 6. Sync Wave による Operator と CR の適用順序制御
+
+Operator の Subscription と Custom Resource (CR) を同一の Application で管理する場合、以下の仕組みで適用順序を制御します。
+
+- **sync-wave "0"** (デフォルト): Namespace, OperatorGroup, Subscription
+- **sync-wave "1"**: Operator の CR (Central, QuayRegistry, Backstage 等)
+- **SkipDryRunOnMissingResource**: CRD 未登録時の dry-run エラーを回避
+- **Subscription health check**: Operator の CSV がインストールされるまで Progressing として待機
+- **retry with backoff**: 一時的な失敗を自動リトライ
 
 ## リポジトリ構成
 
@@ -73,8 +101,6 @@ apps/<tier>/<component>/
 │   └── workload/       #   ワークロードクラスタ専用
 ├── clusters/           # クラスタ別 ApplicationSet
 ├── components/         # リポジトリ共有 Kustomize Components
-├── infrastructure/     # Terraform / Terragrunt（AWS, ROSA, VPC 等）
-├── templates/          # Backstage ソフトウェアテンプレート
 └── docs/               # ドキュメント
 ```
 
@@ -82,7 +108,7 @@ apps/<tier>/<component>/
 
 | クラスタ | 役割 | Tier |
 |---|---|---|
-| idp-cluster | Hub クラスタ。Developer Hub, Quay, Pipelines 等の管理サービスをホスト | core + hub |
+| idp-cluster | Hub クラスタ。Developer Hub, Quay, ACS 等の管理サービスをホスト | core + hub |
 | dev-cluster | 開発環境ワークロード | core + workload |
 | stg-cluster | ステージング環境ワークロード | core + workload |
 | prod-cluster | 本番環境ワークロード | core + workload |
@@ -91,43 +117,40 @@ apps/<tier>/<component>/
 
 ### core/（全クラスタ共通）
 
-| コンポーネント | 用途 |
-|---|---|
-| argocd | OpenShift GitOps - デプロイメント自動化 |
-| cert-manager | Let's Encrypt TLS 証明書管理 |
-| cert-utils-operator | 証明書の Route 自動注入 |
-| external-secrets | AWS Secrets Manager 連携 |
-| cluster-monitoring | クラスタ監視設定 |
-| rbac | プラットフォーム RBAC |
+| コンポーネント | Operator | 用途 |
+|---|---|---|
+| openshift-gitops | OpenShift GitOps Operator | ArgoCD - GitOps デプロイメント自動化 |
+| openshift-pipelines | OpenShift Pipelines Operator | Tekton - CI/CD パイプライン基盤 |
+| cluster-monitoring | - | クラスタ監視設定 |
+| rbac | - | プラットフォーム RBAC |
 
 ### hub/（IDP クラスタ専用）
 
-| コンポーネント | 用途 |
-|---|---|
-| backstage | Red Hat Developer Hub - 開発者ポータル |
-| quay | Red Hat Quay - コンテナレジストリ |
-| pipelines | OpenShift Pipelines (Tekton) - CI/CD |
-| acs | Advanced Cluster Security - コンテナセキュリティ |
-| tas | Trusted Artifact Signer - イメージ署名・検証 |
-| tpa | Trusted Profile Analyzer - 脆弱性分析 |
+| コンポーネント | Operator | 用途 |
+|---|---|---|
+| rhacs | RHACS Operator | Advanced Cluster Security - コンテナセキュリティ |
+| quay | Quay Operator | Red Hat Quay - コンテナレジストリ |
+| rhdh | RHDH Operator | Red Hat Developer Hub - 開発者ポータル |
+| rhtas | RHTAS Operator | Trusted Artifact Signer - イメージ署名・検証 |
+| rhtpa | RHTPA Operator | Trusted Profile Analyzer - 脆弱性分析 |
 
 ### workload/（ワークロードクラスタ専用）
 
-| コンポーネント | 用途 |
-|---|---|
-| amq-streams | AMQ Streams (Kafka) |
-| aws-load-balancer-operator | ALB/NLB 自動作成 |
-| external-dns-operator | Route53 DNS レコード自動作成 |
-| grafana-operator | 監視ダッシュボード |
-| opentelemetry | 分散トレーシング・メトリクス |
-| argo-rollouts | Blue/Green・Canary デプロイメント |
+| コンポーネント | Operator | 用途 |
+|---|---|---|
+| servicemesh | Service Mesh Operator | OpenShift Service Mesh |
+| sample-app | - | サンプルアプリ (overlay patch パターンのデモ) |
 
 ## ブートストラップ手順
 
 各クラスタで以下を実行します。
 
 ```bash
-# 1. ArgoCD のインストールと ApplicationSet の適用
+# 1. ArgoCD Operator のインストールと ArgoCD CR + ApplicationSet の適用
+oc apply -k bootstrap/overlays/<cluster-name>/
+
+# CRD が登録されるまで待機（初回のみ）
+# Operator がインストールされた後、再適用
 oc apply -k bootstrap/overlays/<cluster-name>/
 
 # 例: IDP クラスタ
@@ -136,16 +159,19 @@ oc apply -k bootstrap/overlays/idp-cluster/
 
 ブートストラップ後の流れ:
 
-1. ArgoCD がインストールされる
-2. ArgoCD が `clusters/<cluster-name>/` の ApplicationSet を読み取る
-3. ApplicationSet が `apps/` 配下のマッチする overlay を自動検出し、Application を生成する
+1. OpenShift GitOps Operator がインストールされる
+2. ArgoCD CR が作成され、ArgoCD が起動する
+3. ArgoCD が `clusters/<cluster-name>/` の ApplicationSet を読み取る
+4. ApplicationSet が `apps/` 配下のマッチする overlay を自動検出し、Application を生成する
+5. Operator Subscription が先に sync され、CRD 登録後に CR が sync される (sync-wave)
 
 ## 新しいコンポーネントの追加方法
 
 ```bash
 # 1. Tier を選択して base を作成
 mkdir -p apps/<tier>/<component>/base
-# -> Subscription, Namespace 等のリソースを配置
+# -> Namespace, OperatorGroup, Subscription, CR 等のリソースを配置
+# -> CR には sync-wave "1" と SkipDryRunOnMissingResource annotation を付与
 
 # 2. Overlay を作成（スコープに応じた名前で）
 mkdir -p apps/<tier>/<component>/overlays/<target>
@@ -160,7 +186,7 @@ mkdir -p apps/<tier>/<component>/overlays/<target>
 
 ```bash
 # 個別の overlay を検証
-oc kustomize apps/core/argocd/overlays/all/
+oc kustomize apps/core/openshift-gitops/overlays/idp-cluster/
 
 # 全 overlay を一括検証
 for dir in $(find apps -type f -name kustomization.yaml -path '*/overlays/*' -exec dirname {} \; | sort); do
