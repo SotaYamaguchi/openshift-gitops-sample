@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# ArgoCD のメトリクス収集を有効化する
+# Prometheus ServiceMonitor が生成され、クラスタ監視と連携する
+
+patches:
+  - target:
+      kind: ArgoCD
+      name: argocd
+    patch: |-
+      - op: replace
+        path: /spec/monitoring
+        value:
+          enabled: true
+      - op: replace
+        path: /spec/prometheus
+        value:
+          enabled: true
+          ingress:
+            enabled: false
+          route:
+            enabled: false
