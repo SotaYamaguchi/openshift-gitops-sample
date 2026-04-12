@@ -5,6 +5,7 @@ metadata:
   namespace: trusted-profile-analyzer
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   appDomain: apps.example.com # TODO: Set actual OpenShift apps domain
   openshift:
