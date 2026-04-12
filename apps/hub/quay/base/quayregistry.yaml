@@ -4,23 +4,29 @@ metadata:
   name: quay
   namespace: quay-enterprise
 spec:
-  configBundleSecret: quay-config-bundle  # TODO: Create this secret
+  configBundleSecret: config-bundle
   components:
-    - kind: objectstorage
-      managed: false  # Uses external S3
-    - kind: clair
-      managed: true
     - kind: postgres
+      managed: true
+    - kind: objectstorage
       managed: true
     - kind: redis
       managed: true
-    - kind: horizontalpodautoscaler
-      managed: true
-    - kind: mirror
-      managed: true
-    - kind: monitoring
-      managed: true
     - kind: tls
-      managed: false  # Uses cert-manager
+      managed: true
     - kind: route
       managed: true
+    - kind: clair
+      managed: true
+      overrides:
+        volumeSize: 100Gi
+    - kind: clairpostgres
+      managed: true
+    - kind: quay
+      managed: true
+    - kind: horizontalpodautoscaler
+      managed: false
+    - kind: mirror
+      managed: false
+    - kind: monitoring
+      managed: false
