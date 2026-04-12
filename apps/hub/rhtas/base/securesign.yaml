@@ -3,6 +3,8 @@ kind: Securesign
 metadata:
   name: securesign
   namespace: trusted-artifact-signer
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/instance: securesign
     app.kubernetes.io/name: securesign
