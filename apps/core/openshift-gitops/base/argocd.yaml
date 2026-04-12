@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1beta1
 kind: ArgoCD
 metadata:
-  name: openshift-gitops
+  name: argocd
   namespace: openshift-gitops
 spec:
   server:
@@ -17,8 +17,35 @@ spec:
       tls:
         termination: reencrypt
     service:
-      type: ClusterIP
-  resourceExclusions: | # TODO: Set actual value
+      type: ""
+  controller:
+    appSync: 30s
+    processors: {}
+    sharding: {}
+  ha:
+    enabled: false
+  notifications:
+    enabled: true
+  monitoring:
+    enabled: false
+  grafana:
+    enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  prometheus:
+    enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  rbac:
+    defaultPolicy: role:admin
+    policy: |
+      g, system:cluster-admins, role:admin
+    scopes: '[groups]'
+  resourceExclusions: |
     - apiGroups:
         - tekton.dev
       clusters:
@@ -26,34 +53,14 @@ spec:
       kinds:
         - TaskRun
         - PipelineRun
-  rbac:
-    defaultPolicy: role:readonly
-    policy: | # TODO: Set actual value
-      g, system:cluster-admins, role:admin
-    scopes: '[groups]'
-  repo:
-    resources:
-      limits:
-        cpu: "1" # TODO: Set actual value
-        memory: 1Gi # TODO: Set actual value
-      requests:
-        cpu: 250m # TODO: Set actual value
-        memory: 256Mi # TODO: Set actual value
-  ha:
-    enabled: false
   applicationSet:
-    resources:
-      limits:
-        cpu: "1" # TODO: Set actual value
-        memory: 1Gi # TODO: Set actual value
-      requests:
-        cpu: 250m # TODO: Set actual value
-        memory: 256Mi # TODO: Set actual value
-  controller:
-    resources:
-      limits:
-        cpu: "2" # TODO: Set actual value
-        memory: 2Gi # TODO: Set actual value
-      requests:
-        cpu: 250m # TODO: Set actual value
-        memory: 1Gi # TODO: Set actual value
+    webhookServer:
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+  redis: {}
+  repo: {}
+  initialSSHKnownHosts: {}
+  tls:
+    ca: {}
