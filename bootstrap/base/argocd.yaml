@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: argocd
+  namespace: openshift-gitops
+spec:
+  server:
+    route:
+      enabled: true
+      tls:
+        termination: reencrypt
+  ha:
+    enabled: false
+  applicationSet: {}
+  rbac:
+    defaultPolicy: role:admin
+    policy: |
+      g, system:cluster-admins, role:admin
+    scopes: '[groups]'
