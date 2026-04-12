@@ -12,6 +12,21 @@ spec:
   ha:
     enabled: false
   applicationSet: {}
+  resourceHealthChecks:
+    - group: operators.coreos.com
+      kind: Subscription
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.installedCSV ~= nil and obj.status.installedCSV ~= "" then
+            hs.status = "Healthy"
+            hs.message = obj.status.installedCSV
+            return hs
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Operator installation"
+        return hs
   rbac:
     defaultPolicy: role:admin
     policy: |

@@ -45,6 +45,44 @@ spec:
     policy: |
       g, system:cluster-admins, role:admin
     scopes: '[groups]'
+  resourceHealthChecks:
+    - group: operators.coreos.com
+      kind: Subscription
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.installedCSV ~= nil and obj.status.installedCSV ~= "" then
+            hs.status = "Healthy"
+            hs.message = obj.status.installedCSV
+            return hs
+          end
+          if obj.status.state ~= nil then
+            if obj.status.state == "AtLatestKnown" then
+              hs.status = "Healthy"
+              hs.message = "At latest known"
+              return hs
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Operator installation"
+        return hs
+    - group: operators.coreos.com
+      kind: InstallPlan
+      check: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.phase ~= nil then
+            if obj.status.phase == "Complete" then
+              hs.status = "Healthy"
+              hs.message = "InstallPlan complete"
+              return hs
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for InstallPlan"
+        return hs
   resourceExclusions: |
     - apiGroups:
         - tekton.dev
