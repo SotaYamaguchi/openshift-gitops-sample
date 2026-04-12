@@ -3,4 +3,6 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
+  - operatorgroup.yaml
   - subscription.yaml
+  - backstage.yaml
