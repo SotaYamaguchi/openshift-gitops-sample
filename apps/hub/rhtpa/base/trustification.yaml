@@ -1,6 +1,68 @@
-apiVersion: trustification.redhat.com/v1alpha1
-kind: Trustification
+apiVersion: rhtpa.io/v1
+kind: TrustedProfileAnalyzer
 metadata:
-  name: trustification
+  name: trusted-profile-analyzer
   namespace: trusted-profile-analyzer
-spec: {}
+spec:
+  appDomain: apps.example.com # TODO: Set actual OpenShift apps domain
+  openshift:
+    useServiceCa: true
+  database: {}
+  storage: {}
+  oidc:
+    clients:
+      frontend: {}
+      cli:
+        clientSecret: null
+  modules:
+    server:
+      enabled: true
+      replicas: 1
+      image: {}
+      infrastructure: {}
+      ingress: {}
+      metrics: {}
+      resources:
+        requests:
+          cpu: 1
+          memory: 8Gi
+      rust: {}
+      tracing: {}
+    importer:
+      enabled: true
+      replicas: 1
+      concurrency: 1
+      image: {}
+      infrastructure: {}
+      metrics: {}
+      resources:
+        requests:
+          cpu: 1
+          memory: 8Gi
+      rust: {}
+      tracing: {}
+      workingDirectory:
+        size: 32Gi
+    createDatabase:
+      enabled: false
+      image: {}
+    migrateDatabase:
+      enabled: false
+      image: {}
+    createImporters:
+      enabled: false
+      image: {}
+      importers: {}
+  infrastructure:
+    port: 9010
+  ingress: {}
+  collector: {}
+  image: {}
+  tls: {}
+  metrics:
+    enabled: false
+  tracing:
+    enabled: false
+  rust: {}
+  partOf: trustify
+  replicas: 1
