@@ -4,7 +4,7 @@ metadata:
   name: quay-operator
   namespace: quay-registry
 spec:
-  channel: stable-3.13
+  channel: stable-3.16
   installPlanApproval: Manual
   name: quay-operator
   source: redhat-operators

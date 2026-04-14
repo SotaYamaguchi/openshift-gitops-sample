@@ -4,7 +4,7 @@ metadata:
   name: openshift-gitops-operator
   namespace: openshift-operators
 spec:
-  channel: gitops-1.14
+  channel: gitops-1.19
   # installPlanApproval は必ず大文字 "Manual" で指定すること (小文字だと Automatic 扱いになる)
   # ref: https://access.redhat.com/solutions/7113645
   installPlanApproval: Manual
