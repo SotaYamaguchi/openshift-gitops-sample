@@ -5,7 +5,7 @@ metadata:
   namespace: quay-registry
 spec:
   channel: stable-3.13
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
   name: quay-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace

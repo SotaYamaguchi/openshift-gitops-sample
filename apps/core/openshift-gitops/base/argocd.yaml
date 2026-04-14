@@ -46,6 +46,8 @@ spec:
       g, system:cluster-admins, role:admin
       g, cluster-admins, role:admin
     scopes: '[groups]'
+  # Custom health checks for OLM resources
+  # ref: https://access.redhat.com/solutions/7015069
   resourceHealthChecks:
     - group: operators.coreos.com
       kind: Subscription

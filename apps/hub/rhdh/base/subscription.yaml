@@ -4,8 +4,8 @@ metadata:
   name: rhdh
   namespace: rhdh-operator
 spec:
-  channel: fast-1.6
-  installPlanApproval: Automatic
+  channel: fast-1.8
+  installPlanApproval: Manual
   name: rhdh
   source: redhat-operators
   sourceNamespace: openshift-marketplace

@@ -5,7 +5,7 @@ metadata:
   namespace: trusted-profile-analyzer
 spec:
   channel: stable-v1.1
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
   name: rhtpa-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
