@@ -4,69 +4,27 @@ metadata:
   name: argocd-custom-resources
   labels:
     app.kubernetes.io/part-of: argocd
+# デフォルト ClusterRole で get/list/watch は付与済みのため
+# ここでは書き込み系のみを追加する (最小権限の原則)
+# delete は syncPolicy.automated.prune: true に必要
 rules:
   # Quay Operator
-  - apiGroups:
-      - quay.redhat.com
-    resources:
-      - quayregistries
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  - apiGroups: [quay.redhat.com]
+    resources: [quayregistries]
+    verbs: [create, update, patch, delete]
   # RHACS (StackRox) Operator
-  - apiGroups:
-      - platform.stackrox.io
-    resources:
-      - centrals
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  - apiGroups: [platform.stackrox.io]
+    resources: [centrals]
+    verbs: [create, update, patch, delete]
   # RHDH (Backstage) Operator
-  - apiGroups:
-      - rhdh.redhat.com
-    resources:
-      - backstages
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  - apiGroups: [rhdh.redhat.com]
+    resources: [backstages]
+    verbs: [create, update, patch, delete]
   # RHTAS (Trusted Artifact Signer) Operator
-  - apiGroups:
-      - rhtas.redhat.com
-    resources:
-      - securesigns
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  - apiGroups: [rhtas.redhat.com]
+    resources: [securesigns]
+    verbs: [create, update, patch, delete]
   # RHTPA (Trusted Profile Analyzer) Operator
-  - apiGroups:
-      - rhtpa.io
-    resources:
-      - trustedprofileanalyzers
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  - apiGroups: [rhtpa.io]
+    resources: [trustedprofileanalyzers]
+    verbs: [create, update, patch, delete]
