@@ -4,6 +4,8 @@ metadata:
   name: argocd
   namespace: openshift-gitops
 spec:
+  applicationSet:
+    enabled: true
   server:
     route:
       enabled: true
