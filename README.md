@@ -194,6 +194,59 @@ for dir in $(find apps -type f -name kustomization.yaml -path '*/overlays/*' -ex
 done
 ```
 
+## Operator チャネルの更新手順
+
+Subscription の `channel` を更新する際は、CatalogSource に実際に存在するチャネルを確認すること。
+Red Hat ドキュメント上の最新バージョンがクラスタの CatalogSource に未提供の場合がある。
+
+### 1. 利用可能なチャネルを確認する
+
+```bash
+# 特定の Operator
+oc get packagemanifest <operator-name> -n openshift-marketplace \
+  -o jsonpath='{.status.channels[*].name}'
+
+# このリポジトリで管理している全 Operator を一括確認
+for pkg in openshift-gitops-operator openshift-pipelines-operator-rh \
+           rhacs-operator quay-operator rhdh rhtas-operator \
+           rhtpa-operator servicemeshoperator; do
+  printf "%-40s %s\n" "$pkg:" \
+    "$(oc get packagemanifest "$pkg" -n openshift-marketplace \
+       -o jsonpath='{.status.channels[*].name}' 2>/dev/null || echo 'NOT FOUND')"
+done
+```
+
+### 2. Red Hat 公式ライフサイクルポリシーを参照する
+
+- [OpenShift Operator Life Cycles](https://access.redhat.com/support/policy/updates/openshift_operators)
+
+### 3. Subscription ファイルのチャネルを更新する
+
+対象ファイル一覧:
+
+| Operator | ファイル |
+|---|---|
+| OpenShift GitOps | `bootstrap/base/subscription.yaml` |
+| OpenShift Pipelines | `apps/core/openshift-pipelines/base/subscription.yaml` |
+| RHACS | `apps/hub/rhacs-central/base/subscription.yaml` |
+| Quay | `apps/hub/quay/base/subscription.yaml` |
+| Developer Hub | `apps/hub/rhdh/base/subscription.yaml` |
+| Trusted Artifact Signer | `apps/hub/rhtas/base/subscription.yaml` |
+| Trusted Profile Analyzer | `apps/hub/rhtpa/base/subscription.yaml` |
+| Service Mesh | `apps/workload/servicemesh/base/subscription.yaml` |
+
+### 4. InstallPlan を承認する
+
+`installPlanApproval: Manual` のため、チャネル変更後に生成される InstallPlan を承認する必要がある。
+
+```bash
+# 未承認の InstallPlan を確認（dry-run）
+./scripts/approve-installplans.sh --dry-run
+
+# 一括承認
+./scripts/approve-installplans.sh
+```
+
 ## 参考資料
 
 - [gnunn-gitops/cluster-config-v2](https://github.com/gnunn-gitops/cluster-config-v2) -- Gerald Nunn 氏による OpenShift GitOps リファレンス実装

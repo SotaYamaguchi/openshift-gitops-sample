@@ -47,3 +47,4 @@ docs/               # Documentation
 - **Add a new component**: Create `apps/<tier>/<component>/base/` + `overlays/<target>/`
 - **Bootstrap a cluster**: `oc apply -k bootstrap/overlays/<cluster-name>/`
 - **Validate manifests**: `oc kustomize apps/<tier>/<component>/overlays/<target>/`
+- **InstallPlan 一括承認**: `./scripts/approve-installplans.sh` (`--dry-run` で確認のみ)
