@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ../../base
   - clusterrolebinding.yaml
+  - argocd-custom-resources-clusterrolebinding.yaml

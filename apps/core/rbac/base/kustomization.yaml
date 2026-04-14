@@ -3,3 +3,4 @@ kind: Kustomization
 
 resources:
   - clusterrole.yaml
+  - argocd-custom-resources-clusterrole.yaml
