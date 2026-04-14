@@ -11,6 +11,7 @@ spec:
         termination: reencrypt
   ha:
     enabled: false
+  # ref: https://access.redhat.com/solutions/7014191
   rbac:
     defaultPolicy: ''
     policy: |

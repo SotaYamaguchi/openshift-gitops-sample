@@ -5,13 +5,19 @@ metadata:
   namespace: openshift-operators
 spec:
   channel: gitops-1.14
+  # installPlanApproval は必ず大文字 "Manual" で指定すること (小文字だと Automatic 扱いになる)
+  # ref: https://access.redhat.com/solutions/7113645
   installPlanApproval: Manual
   name: openshift-gitops-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
   config:
     env:
+      # デフォルトの ArgoCD インスタンスを無効化し、カスタム CR で管理する
+      # ref: https://access.redhat.com/solutions/6536621
       - name: DISABLE_DEFAULT_ARGOCD_INSTANCE
         value: "true"
+      # ArgoCD CR をクラスタスコープで動作させる namespace を指定
+      # ref: https://access.redhat.com/solutions/6677421
       - name: ARGOCD_CLUSTER_CONFIG_NAMESPACES
         value: openshift-gitops

@@ -4,6 +4,8 @@ metadata:
   name: stackrox-central-services
   namespace: stackrox
   annotations:
+    # Operator CRD が登録されるまで dry-run を skip し、sync-wave で Subscription の後に同期する
+    # ref: https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/
     argocd.argoproj.io/sync-wave: "1"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:

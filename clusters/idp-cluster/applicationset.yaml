@@ -30,6 +30,8 @@ spec:
         automated:
           prune: true
           selfHeal: true
+        # ServerSideApply: フィールド衝突を回避しつつ Operator 管理リソースと共存
+        # SkipDryRunOnMissingResource: Operator CRD 未登録時の dry-run エラーを回避
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true

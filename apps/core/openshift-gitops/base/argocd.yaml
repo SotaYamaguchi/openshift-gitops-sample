@@ -40,6 +40,8 @@ spec:
       enabled: false
     route:
       enabled: false
+  # RBAC: 未認証ユーザーの権限をなしに設定 (デフォルトは role:readonly で情報漏洩リスクあり)
+  # ref: https://access.redhat.com/solutions/7014191
   rbac:
     defaultPolicy: ''
     policy: |
@@ -107,6 +109,8 @@ spec:
         hs.status = "Progressing"
         hs.message = "Waiting for InstallPlan"
         return hs
+  # Tekton の一時的な実行リソースを ArgoCD の管理対象から除外
+  # ref: https://access.redhat.com/solutions/6956914
   resourceExclusions: |
     - apiGroups:
         - tekton.dev
