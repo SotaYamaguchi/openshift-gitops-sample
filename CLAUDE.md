@@ -38,6 +38,10 @@ docs/               # Documentation
 - Operator CR uses sync-wave "1" + SkipDryRunOnMissingResource to wait for CRD registration
 - Subscription health check ensures Operator is installed before CR sync
 
+## Rules
+
+- Apps/clusters の追加・変更前に `/coding-rules` を実行すること
+
 ## Common tasks
 
 - **Add a new component**: Create `apps/<tier>/<component>/base/` + `overlays/<target>/`

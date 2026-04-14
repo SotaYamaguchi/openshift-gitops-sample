@@ -1,0 +1,1 @@
+Read the file CODING_RULES.md at the project root and strictly follow all rules defined in it for the duration of this conversation. After reading, briefly confirm you understand the rules by listing the rule IDs (RULE-01 through RULE-14).
