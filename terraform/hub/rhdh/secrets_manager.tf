@@ -1,7 +1,8 @@
 #------------------------------------------------------------------------------
 # Secrets Manager -- RHDH 用シークレット
 #
-# PLACEHOLDER 値で作成し、手動で実値を設定する。
+# DB パスワードは Aurora の manage_master_user_password が自動管理する。
+# GitHub OAuth / GitHub App は PLACEHOLDER 値で作成し、手動で実値を設定する。
 # lifecycle ignore_changes で Terraform が上書きしないようにする。
 #
 # ExternalSecret (ESO) からこれらを参照して OpenShift Secret に同期する。
@@ -51,6 +52,8 @@ resource "aws_secretsmanager_secret_version" "rhdh_github_app" {
   }
 }
 
+# DB 接続情報: Aurora エンドポイントとユーザー名は Terraform が設定
+# パスワードは Aurora の master_user_secret を ESO から直接参照する
 resource "aws_secretsmanager_secret" "rhdh_db" {
   name       = "openshift/rhdh/database"
   kms_key_id = aws_kms_key.rhdh.arn
@@ -66,10 +69,10 @@ resource "aws_secretsmanager_secret_version" "rhdh_db" {
     host     = aws_rds_cluster.rhdh.endpoint
     port     = "5432"
     username = aws_rds_cluster.rhdh.master_username
-    password = "PLACEHOLDER"
     database = aws_rds_cluster.rhdh.database_name
   })
 
+  # host は Aurora 作成後に自動設定されるが、手動変更は上書きしない
   lifecycle {
     ignore_changes = [secret_string]
   }

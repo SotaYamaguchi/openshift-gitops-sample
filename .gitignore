@@ -1,3 +1,7 @@
 TODO.md
 docs/rhdh-implementation-report.md
 docs/terraform-sample/
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars

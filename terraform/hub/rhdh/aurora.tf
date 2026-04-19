@@ -1,19 +1,34 @@
 #------------------------------------------------------------------------------
 # Aurora PostgreSQL -- RHDH (Red Hat Developer Hub) データベース
 #
-# RHDH の enableLocalDb を外部 Aurora PostgreSQL に置き換える。
-# manage_master_user_password = true により、AWS が Secrets Manager で
-# マスターパスワードを自動管理する。
+# ROSA HCP の VPC 内に直接 Aurora を配置する。
+# DB Subnet Group には最低 2 AZ 必要なため、別 AZ に追加サブネットを作成。
+# manage_master_user_password = true で AWS Secrets Manager がパスワード自動管理。
 #
 # Non-functional Requirements:
-#   - Private Subnet 配置、インターネット非公開
+#   - ROSA VPC Private Subnet 配置、インターネット非公開
 #   - KMS CMK で保存時暗号化
-#   - Multi-AZ (2 インスタンス)
-#   - バックアップ: 日次取得、30日保持
+#   - Single Instance (Sandbox 向け、本番では count=2 に変更)
+#   - バックアップ: 日次取得、7日保持
 #   - メンテナンス窓: 日曜 02:00-06:00 JST (= sat:17:00-sat:21:00 UTC)
 #
 # ref: https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/configuring/index
 #------------------------------------------------------------------------------
+
+############################
+# Aurora 用追加サブネット
+############################
+
+# 既存 VPC に別 AZ の Private Subnet を追加 (DB Subnet Group の 2 AZ 要件)
+resource "aws_subnet" "aurora_secondary" {
+  vpc_id            = var.vpc_id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.available.names[1] # us-east-2b
+
+  tags = {
+    Name = "rhdh-aurora-private-${data.aws_availability_zones.available.names[1]}"
+  }
+}
 
 ############################
 # KMS Key
@@ -41,7 +56,10 @@ resource "aws_kms_alias" "rhdh" {
 resource "aws_db_subnet_group" "rhdh" {
   name        = "rhdh-${var.environment}"
   description = "Subnet group for RHDH Aurora PostgreSQL (${var.environment})"
-  subnet_ids  = data.aws_subnets.private.ids
+  subnet_ids = [
+    var.private_subnet_id,
+    aws_subnet.aurora_secondary.id,
+  ]
 
   tags = {
     Name = "rhdh-${var.environment}"
@@ -55,7 +73,7 @@ resource "aws_db_subnet_group" "rhdh" {
 resource "aws_security_group" "rhdh_aurora" {
   name        = "rhdh-${var.environment}-aurora"
   description = "Security group for RHDH Aurora PostgreSQL (${var.environment})"
-  vpc_id      = data.aws_vpc.cluster.id
+  vpc_id      = var.vpc_id
 
   tags = {
     Name = "rhdh-${var.environment}-aurora"
@@ -101,14 +119,15 @@ resource "aws_rds_cluster" "rhdh" {
   storage_encrypted = true
   kms_key_id        = aws_kms_key.rhdh.arn
 
-  # バックアップ
-  backup_retention_period      = 30
+  # バックアップ (Sandbox 向け: 7日)
+  backup_retention_period      = 7
   preferred_backup_window      = "16:00-17:00"
   preferred_maintenance_window = "sat:17:00-sat:21:00"
   copy_tags_to_snapshot        = true
 
-  # 保護
-  deletion_protection = true
+  # 保護 (Sandbox では false、本番では true に変更)
+  deletion_protection = false
+  skip_final_snapshot = true
 
   # ログ出力
   enabled_cloudwatch_logs_exports = ["postgresql"]
@@ -119,13 +138,11 @@ resource "aws_rds_cluster" "rhdh" {
 }
 
 ############################
-# Aurora Instance
+# Aurora Instance (Single)
 ############################
 
 resource "aws_rds_cluster_instance" "rhdh" {
-  count = 2
-
-  identifier         = "rhdh-${var.environment}-${count.index}"
+  identifier         = "rhdh-${var.environment}-0"
   cluster_identifier = aws_rds_cluster.rhdh.id
 
   engine         = aws_rds_cluster.rhdh.engine
@@ -143,7 +160,7 @@ resource "aws_rds_cluster_instance" "rhdh" {
   auto_minor_version_upgrade   = true
 
   tags = {
-    Name = "rhdh-${var.environment}-${count.index}"
+    Name = "rhdh-${var.environment}-0"
   }
 }
 
@@ -156,7 +173,7 @@ output "rhdh_aurora_endpoint" {
   value       = aws_rds_cluster.rhdh.endpoint
 }
 
-output "rhdh_aurora_reader_endpoint" {
-  description = "Aurora reader endpoint for RHDH"
-  value       = aws_rds_cluster.rhdh.reader_endpoint
+output "rhdh_aurora_master_secret_arn" {
+  description = "ARN of the Secrets Manager secret for Aurora master password"
+  value       = aws_rds_cluster.rhdh.master_user_secret[0].secret_arn
 }

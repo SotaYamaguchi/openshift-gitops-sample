@@ -1,7 +1,7 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "ap-northeast-1"
+  default     = "us-east-2"
 }
 
 variable "cluster_name" {
@@ -11,6 +11,11 @@ variable "cluster_name" {
 
 variable "vpc_id" {
   description = "VPC ID where ROSA cluster is deployed"
+  type        = string
+}
+
+variable "private_subnet_id" {
+  description = "Existing private subnet ID in the ROSA VPC (used for Aurora)"
   type        = string
 }
 
