@@ -28,3 +28,11 @@ rules:
   - apiGroups: [rhtpa.io]
     resources: [trustedprofileanalyzers]
     verbs: [create, update, patch, delete]
+  # External Secrets Operator
+  - apiGroups: [external-secrets.io]
+    resources: [clustersecretstores, externalsecrets]
+    verbs: [create, update, patch, delete]
+  # ServiceAccount (ESO IRSA 用)
+  - apiGroups: [""]
+    resources: [serviceaccounts]
+    verbs: [create, update, patch, delete]
