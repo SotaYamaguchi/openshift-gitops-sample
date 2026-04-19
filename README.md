@@ -218,6 +218,36 @@ terraform apply
 - Secrets Manager (GitHub OAuth, GitHub App, DB 接続情報)
 - IRSA Role (External Secrets Operator 用)
 
+Apply 後、Aurora の自動生成パスワードを DB 接続情報 Secret に反映します。
+
+```bash
+# Aurora が自動生成したマスターパスワードを取得
+MASTER_SECRET_ID=$(terraform output -raw rhdh_aurora_master_secret_arn \
+  | sed 's|.*secret:||')
+MASTER_PASS=$(aws secretsmanager get-secret-value \
+  --secret-id "$MASTER_SECRET_ID" \
+  --query 'SecretString' --output text --region us-east-2 \
+  | jq -r '.password')
+
+# DB 接続情報 Secret にパスワードを設定
+AURORA_ENDPOINT=$(terraform output -raw rhdh_aurora_endpoint)
+aws secretsmanager put-secret-value \
+  --secret-id 'openshift/rhdh/database' \
+  --secret-string "{
+    \"host\": \"$AURORA_ENDPOINT\",
+    \"port\": \"5432\",
+    \"username\": \"backstage_admin\",
+    \"password\": \"$MASTER_PASS\",
+    \"database\": \"backstage\"
+  }" --region us-east-2
+
+# 設定確認
+aws secretsmanager get-secret-value \
+  --secret-id 'openshift/rhdh/database' \
+  --query 'SecretString' --output text --region us-east-2 \
+  | jq '{host, username, database, password_length: (.password | length)}'
+```
+
 ## ブートストラップ手順
 
 各クラスタで以下を実行します。
