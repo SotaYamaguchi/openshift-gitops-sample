@@ -6,3 +6,38 @@ resources:
 
 components:
   - ../../components/ha
+  - ../../components/external-db
+  - ../../components/github-auth
+  - ../../components/rbac
+  - ../../components/dynamic-plugins
+
+# Backstage CR に全 component の ConfigMap/Secret/extraFiles を統合パッチ
+patches:
+  - target:
+      group: rhdh.redhat.com
+      version: v1alpha4
+      kind: Backstage
+      name: developer-hub
+    patch: |-
+      - op: add
+        path: /spec/application/extraEnvs
+        value:
+          secrets:
+            - name: rhdh-db-credentials
+            - name: rhdh-github-oauth
+            - name: rhdh-github-app
+      - op: add
+        path: /spec/application/appConfig
+        value:
+          configMaps:
+            - name: app-config-db
+            - name: app-config-github-auth
+            - name: app-config-rbac
+      - op: add
+        path: /spec/application/extraFiles
+        value:
+          configMaps:
+            - name: rhdh-rbac-policy
+      - op: add
+        path: /spec/application/dynamicPluginsConfigMapName
+        value: dynamic-plugins

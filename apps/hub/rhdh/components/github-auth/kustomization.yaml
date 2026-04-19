@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# GitHub OAuth + GitHub App による認証を設定する
+# OAuth: ユーザーログイン用、GitHub App: サーバー間 API アクセス用
+# ref: https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/authentication_in_red_hat_developer_hub/index
+
+resources:
+  - external-secret-github-oauth.yaml
+  - external-secret-github-app.yaml
+  - app-config-github-auth.yaml

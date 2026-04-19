@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# RHDH RBAC: 3 ロールモデル (platform-admin / developer / viewer)
+# Casbin CSV ポリシーを ConfigMap としてマウントする
+# ref: https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/authorization_in_red_hat_developer_hub/index
+
+resources:
+  - rbac-policy-configmap.yaml
+  - app-config-rbac.yaml

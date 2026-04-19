@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dynamic-plugins
+  namespace: rhdh
+data:
+  dynamic-plugins.yaml: |
+    includes:
+      - dynamic-plugins.default.yaml
+    plugins:
+      # Phase 1: GitHub カタログ自動検出
+      - package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-github-dynamic
+        disabled: false
+        pluginConfig:
+          catalog:
+            providers:
+              github:
+                providerId:
+                  organization: "${GITHUB_ORG}"
+                  schedule:
+                    frequency:
+                      minutes: 5
+                    timeout:
+                      minutes: 3
+                    initialDelay:
+                      seconds: 15
+
+      # Phase 1: GitHub Org 同期 (Teams -> Backstage Groups)
+      - package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-github-org-dynamic
+        disabled: false
+        pluginConfig:
+          catalog:
+            providers:
+              githubOrg:
+                default:
+                  id: production
+                  orgUrl: "https://github.com/${GITHUB_ORG}"
+                  schedule:
+                    frequency:
+                      minutes: 30
+                    timeout:
+                      minutes: 3
+                    initialDelay:
+                      seconds: 30
+
+      # Phase 2: Scaffolder GitHub 連携
+      - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-github-dynamic
+        disabled: false
+
+      # Phase 2: ArgoCD ステータス表示
+      - package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
+        disabled: false
+
+      # Phase 2: Scaffolder ArgoCD Application 作成
+      - package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-argocd-dynamic
+        disabled: false
+
+      # Phase 3: Kubernetes (将来有効化)
+      # - package: ./dynamic-plugins/dist/backstage-plugin-kubernetes-backend-dynamic
+      #   disabled: true
+      # - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-kubernetes-dynamic
+      #   disabled: true
+
+      # Phase 5: Tekton (将来有効化)
+      # - package: ./dynamic-plugins/dist/backstage-community-plugin-tekton
+      #   disabled: true

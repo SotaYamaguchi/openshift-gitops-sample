@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-rbac
+  namespace: rhdh
+data:
+  app-config-rbac.yaml: |
+    permission:
+      enabled: true
+      rbac:
+        admin:
+          superUsers:
+            - name: user:default/admin
+        policies-csv-file: /opt/app-root/src/rbac-policy.csv

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-github-auth
+  namespace: rhdh
+data:
+  app-config-github-auth.yaml: |
+    signInPage: github
+    auth:
+      environment: production
+      providers:
+        github:
+          production:
+            clientId: ${GITHUB_OAUTH_CLIENT_ID}
+            clientSecret: ${GITHUB_OAUTH_CLIENT_SECRET}
+    integrations:
+      github:
+        - host: github.com
+          apps:
+            - appId: ${GITHUB_APP_ID}
+              clientId: ${GITHUB_APP_CLIENT_ID}
+              clientSecret: ${GITHUB_APP_CLIENT_SECRET}
+              privateKey: ${GITHUB_APP_PRIVATE_KEY}

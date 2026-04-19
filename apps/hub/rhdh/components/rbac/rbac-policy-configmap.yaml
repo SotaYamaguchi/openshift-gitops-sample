@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhdh-rbac-policy
+  namespace: rhdh
+data:
+  rbac-policy.csv: |
+    # Roles
+    p, role:platform-admin, catalog-entity, create, allow
+    p, role:platform-admin, catalog-entity, read, allow
+    p, role:platform-admin, catalog-entity, update, allow
+    p, role:platform-admin, catalog-entity, delete, allow
+    p, role:platform-admin, catalog.entity.refresh, create, allow
+    p, role:platform-admin, scaffolder-template, read, allow
+    p, role:platform-admin, scaffolder-action, use, allow
+
+    p, role:developer, catalog-entity, read, allow
+    p, role:developer, catalog.entity.refresh, create, allow
+    p, role:developer, scaffolder-template, read, allow
+    p, role:developer, scaffolder-action, use, allow
+
+    p, role:viewer, catalog-entity, read, allow
+    p, role:viewer, scaffolder-template, read, allow
+
+    # Group-to-role mappings (GitHub Teams)
+    # Adjust team names to match your GitHub organization
+    # g, group:default/<github-org>/<team-name>, role:<role-name>
