@@ -175,6 +175,49 @@ watch oc get nodes -l node-role.kubernetes.io/infra=
 - ref: [GitOps on Infrastructure Nodes](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.10/html-single/gitops_workloads_on_infrastructure_nodes/index)
 - ref: [Infrastructure Nodes in OpenShift 4](https://access.redhat.com/solutions/5034771)
 
+### 3. RHDH 外部データベースの準備 (任意)
+
+RHDH を外部 Aurora PostgreSQL で動かす場合、Terraform で DB を作成します。
+ROSA VPC 内の Private Subnet に Aurora を直接配置する構成です。
+
+```bash
+cd terraform/hub/rhdh/
+terraform init
+
+# ROSA VPC とサブネットの情報を取得
+VPC_ID=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=*<cluster-id>*-vpc" \
+  --query 'Vpcs[0].VpcId' --output text --region us-east-2)
+
+SUBNET_ID=$(aws ec2 describe-subnets \
+  --filters "Name=vpc-id,Values=$VPC_ID" \
+            "Name=tag:Name,Values=*private*" \
+  --query 'Subnets[0].SubnetId' --output text --region us-east-2)
+
+# OIDC Provider の情報を取得 (IRSA 用)
+OIDC_URL=$(rosa describe cluster -c <cluster-name> -o json \
+  | jq -r '.aws.sts.oidc_endpoint_url' | sed 's|https://||')
+OIDC_ARN="arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):oidc-provider/$OIDC_URL"
+
+# Plan & Apply
+terraform plan \
+  -var="cluster_name=<cluster-name>" \
+  -var="vpc_id=$VPC_ID" \
+  -var="private_subnet_id=$SUBNET_ID" \
+  -var="oidc_provider_arn=$OIDC_ARN" \
+  -var="oidc_provider_url=$OIDC_URL"
+
+terraform apply
+```
+
+作成されるリソース:
+- Aurora PostgreSQL (Single Instance, `db.t4g.medium`)
+- Aurora 用追加 Private Subnet (DB Subnet Group の 2AZ 要件)
+- KMS Key (保存時暗号化)
+- Security Group (VPC CIDR からの 5432 のみ許可)
+- Secrets Manager (GitHub OAuth, GitHub App, DB 接続情報)
+- IRSA Role (External Secrets Operator 用)
+
 ## ブートストラップ手順
 
 各クラスタで以下を実行します。
