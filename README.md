@@ -141,6 +141,47 @@ Operator の Subscription と Custom Resource (CR) を同一の Application で�
 | servicemesh | Service Mesh Operator | OpenShift Service Mesh |
 | sample-app | - | サンプルアプリ (overlay patch パターンのデモ) |
 
+## 前提条件
+
+本リポジトリは **ROSA (Red Hat OpenShift Service on AWS) HCP** 上での運用を前提に設計しています。
+
+### 1. ROSA クラスタの準備
+
+```bash
+# クラスタの確認
+rosa list clusters
+```
+
+### 2. Infra ノードの準備
+
+hub クラスタでは RHACS / ArgoCD 等のインフラコンポーネントを Infra ノードで動かします。
+Infra ノードはサブスクリプション vCPU カウントから除外されるため、コスト最適化にもなります。
+
+```bash
+# Infra 用 MachinePool を作成 (RHACS Central DB に cpu:4 が必要なため m6a.2xlarge を推奨)
+rosa create machinepool \
+  --cluster=<cluster-name> \
+  --name=infra \
+  --instance-type=m6a.2xlarge \
+  --replicas=2 \
+  --labels='node-role.kubernetes.io/infra=' \
+  --taints='node-role.kubernetes.io/infra=reserved:NoSchedule'
+
+# ノードが Ready になるまで待機
+watch oc get nodes -l node-role.kubernetes.io/infra=
+```
+
+Infra ノードに配置されるコンポーネント:
+
+| コンポーネント | 設定方法 |
+|---|---|
+| RHACS Central | `apps/hub/rhacs-central/components/infra-nodes/` |
+| ArgoCD | `apps/core/openshift-gitops/components/infra-nodes/` |
+
+- ref: [RHACS on Infrastructure Nodes](https://access.redhat.com/solutions/7102434)
+- ref: [GitOps on Infrastructure Nodes](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.10/html-single/gitops_workloads_on_infrastructure_nodes/index)
+- ref: [Infrastructure Nodes in OpenShift 4](https://access.redhat.com/solutions/5034771)
+
 ## ブートストラップ手順
 
 各クラスタで以下を実行します。
