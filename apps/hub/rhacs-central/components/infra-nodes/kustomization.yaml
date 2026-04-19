@@ -1,0 +1,100 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# RHACS Central 全コンポーネントを Infra ノードにスケジュールする
+# ref: https://access.redhat.com/solutions/7102434
+# ref: https://access.redhat.com/solutions/7067627
+
+patches:
+  - target:
+      group: platform.stackrox.io
+      version: v1alpha1
+      kind: Central
+      name: stackrox-central-services
+    patch: |-
+      - op: add
+        path: /spec/central/nodeSelector
+        value:
+          node-role.kubernetes.io/infra: ""
+      - op: add
+        path: /spec/central/tolerations
+        value:
+          - key: node-role.kubernetes.io/infra
+            value: reserved
+            effect: NoSchedule
+          - key: node-role.kubernetes.io/infra
+            value: reserved
+            effect: NoExecute
+      - op: add
+        path: /spec/central/db
+        value:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoExecute
+      - op: add
+        path: /spec/scanner/analyzer/nodeSelector
+        value:
+          node-role.kubernetes.io/infra: ""
+      - op: add
+        path: /spec/scanner/analyzer/tolerations
+        value:
+          - key: node-role.kubernetes.io/infra
+            value: reserved
+            effect: NoSchedule
+          - key: node-role.kubernetes.io/infra
+            value: reserved
+            effect: NoExecute
+      - op: add
+        path: /spec/scanner/db
+        value:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoExecute
+      - op: add
+        path: /spec/scannerV4/indexer
+        value:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoExecute
+      - op: add
+        path: /spec/scannerV4/matcher
+        value:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoExecute
+      - op: add
+        path: /spec/scannerV4/db
+        value:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoExecute

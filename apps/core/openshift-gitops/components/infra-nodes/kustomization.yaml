@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# ArgoCD ワークロードを Infra ノードにスケジュールする
+# Infra ノードで動かすことでサブスクリプション vCPU カウントから除外される
+# ref: https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.10/html-single/gitops_workloads_on_infrastructure_nodes/index
+# ref: https://access.redhat.com/solutions/5034771
+
+patches:
+  - target:
+      kind: ArgoCD
+      name: argocd
+    patch: |-
+      - op: add
+        path: /spec/nodePlacement
+        value:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/infra
+              value: reserved
+              effect: NoExecute
