@@ -171,13 +171,6 @@ rosa create machinepool \
 watch oc get nodes -l node-role.kubernetes.io/infra=
 ```
 
-Infra ノードに配置されるコンポーネント:
-
-| コンポーネント | 設定方法 |
-|---|---|
-| RHACS Central | `apps/hub/rhacs-central/components/infra-nodes/` |
-| ArgoCD | `apps/core/openshift-gitops/components/infra-nodes/` |
-
 - ref: [RHACS on Infrastructure Nodes](https://access.redhat.com/solutions/7102434)
 - ref: [GitOps on Infrastructure Nodes](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.10/html-single/gitops_workloads_on_infrastructure_nodes/index)
 - ref: [Infrastructure Nodes in OpenShift 4](https://access.redhat.com/solutions/5034771)
