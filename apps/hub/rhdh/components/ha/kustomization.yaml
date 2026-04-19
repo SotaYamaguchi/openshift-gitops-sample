@@ -8,10 +8,10 @@ kind: Component
 patches:
   - target:
       group: rhdh.redhat.com
-      version: v1alpha4
+      version: v1alpha5
       kind: Backstage
       name: developer-hub
     patch: |-
       - op: replace
-        path: /spec/application/replicas
+        path: /spec/deployment/patch/spec/replicas
         value: 2

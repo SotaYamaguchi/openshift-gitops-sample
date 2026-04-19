@@ -1,4 +1,4 @@
-apiVersion: rhdh.redhat.com/v1alpha4
+apiVersion: rhdh.redhat.com/v1alpha5
 kind: Backstage
 metadata:
   name: developer-hub
@@ -8,15 +8,16 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   application:
-    replicas: 1
     route:
       enabled: true
   # リソース設定: Small-scale (5千エンティティ以下) 向け
   # ref: https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/about_red_hat_developer_hub/index
   # ref: https://access.redhat.com/solutions/7078954
+  # v1alpha5 で spec.application.replicas は廃止。deployment.patch.spec.replicas に移動
   deployment:
     patch:
       spec:
+        replicas: 1
         template:
           spec:
             containers:
