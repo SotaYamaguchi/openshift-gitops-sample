@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# AWS Secrets Manager を使った ClusterSecretStore を作成する
+# IRSA で認証するため、ServiceAccount に IAM Role ARN をアノテーションする
+# ref: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/security_and_compliance/external-secrets-operator-for-red-hat-openshift
+
+resources:
+  - serviceaccount.yaml
+  - clustersecretstore.yaml

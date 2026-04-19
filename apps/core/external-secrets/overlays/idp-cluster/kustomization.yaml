@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+components:
+  - ../../components/aws-secrets-manager
+
+patches:
+  # IRSA Role ARN を設定
+  - target:
+      kind: ServiceAccount
+      name: external-secrets
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/eks.amazonaws.com~1role-arn
+        value: "arn:aws:iam::245849285954:role/rhdh-external-secrets-dev"
