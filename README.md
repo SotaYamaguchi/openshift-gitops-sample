@@ -121,6 +121,7 @@ Operator の Subscription と Custom Resource (CR) を同一の Application で�
 |---|---|---|
 | openshift-gitops | OpenShift GitOps Operator | ArgoCD - GitOps デプロイメント自動化 |
 | openshift-pipelines | OpenShift Pipelines Operator | Tekton - CI/CD パイプライン基盤 |
+| external-secrets | External Secrets Operator for Red Hat OpenShift | ESO - 外部シークレット同期 |
 | cluster-monitoring | - | クラスタ監視設定 |
 | rbac | - | プラットフォーム RBAC |
 
@@ -177,8 +178,10 @@ watch oc get nodes -l node-role.kubernetes.io/infra=
 
 ### 3. RHDH 外部データベースの準備 (任意)
 
-RHDH を外部 Aurora PostgreSQL で動かす場合、Terraform で DB を作成します。
-ROSA VPC 内の Private Subnet に Aurora を直接配置する構成です。
+RHDH を外部 Aurora PostgreSQL で動かす場合、Terraform で DB と IRSA を作成し、
+ESO (External Secrets Operator) 経由で Secret を同期します。
+
+#### 3-1. Terraform Apply
 
 ```bash
 cd terraform/hub/rhdh/
@@ -218,6 +221,37 @@ terraform apply
 - Secrets Manager (GitHub OAuth, GitHub App, DB 接続情報)
 - IRSA Role (External Secrets Operator 用)
 
+> **ヒント:** `terraform.tfvars` に値を保存しておくと再実行時に便利です。
+> クラスタ再作成時は `oidc_provider_arn` / `oidc_provider_url` の更新が必要です。
+
+#### 3-2. OIDC プロバイダの AWS IAM 登録
+
+Terraform の IRSA Role が OIDC federation で STS を呼ぶには、ROSA クラスタの OIDC プロバイダが
+AWS IAM に登録されている必要があります。ROSA のセットアップ時に `rosa create oidc-provider` で
+登録済みであれば不要ですが、**クラスタを再作成した場合は新しい OIDC ID で再登録が必要**です。
+
+```bash
+# 登録済みの OIDC プロバイダを確認
+aws iam list-open-id-connect-providers
+
+# クラスタの OIDC issuer URL を確認
+oc get authentication.config.openshift.io cluster \
+  -o jsonpath='{.spec.serviceAccountIssuer}'
+
+# 未登録の場合は登録する
+THUMBPRINT=$(echo | openssl s_client -servername oidc.op1.openshiftapps.com \
+  -connect oidc.op1.openshiftapps.com:443 2>/dev/null \
+  | openssl x509 -fingerprint -sha1 -noout \
+  | sed 's/://g; s/sha1 Fingerprint=//i')
+
+aws iam create-open-id-connect-provider \
+  --url "https://$OIDC_URL" \
+  --client-id-list "openshift" "sts.amazonaws.com" \
+  --thumbprint-list "$THUMBPRINT"
+```
+
+#### 3-3. Aurora パスワードの設定
+
 Apply 後、Aurora の自動生成パスワードを DB 接続情報 Secret に反映します。
 
 ```bash
@@ -246,6 +280,39 @@ aws secretsmanager get-secret-value \
   --secret-id 'openshift/rhdh/database' \
   --query 'SecretString' --output text --region us-east-2 \
   | jq '{host, username, database, password_length: (.password | length)}'
+```
+
+#### 3-4. IRSA Role ARN を overlay に反映
+
+Terraform が作成した IRSA Role ARN を ESO の overlay パッチに設定します。
+
+```bash
+# Role ARN を取得
+ROLE_ARN=$(terraform output -raw rhdh_eso_role_arn)
+echo "Role ARN: $ROLE_ARN"
+
+# overlay の IRSA パッチを更新
+# apps/core/external-secrets/overlays/idp-cluster/kustomization.yaml の
+# eks.amazonaws.com/role-arn の value を $ROLE_ARN に更新してコミット
+```
+
+#### 3-5. ESO InstallPlan の承認と動作確認
+
+ブートストラップ後、ESO Operator の InstallPlan を承認し、Secret が同期されることを確認します。
+
+```bash
+# 未承認の InstallPlan を確認・承認
+./scripts/approve-installplans.sh --dry-run
+./scripts/approve-installplans.sh
+
+# ESO operand が起動していることを確認
+oc get pods -n external-secrets
+
+# ClusterSecretStore が Ready であることを確認
+oc get clustersecretstore aws-secrets-manager
+
+# ExternalSecret が Secret を同期していることを確認
+oc get externalsecret -n rhdh
 ```
 
 ## ブートストラップ手順
@@ -335,6 +402,7 @@ done
 |---|---|
 | OpenShift GitOps | `bootstrap/base/subscription.yaml` |
 | OpenShift Pipelines | `apps/core/openshift-pipelines/base/subscription.yaml` |
+| External Secrets | `apps/core/external-secrets/base/subscription.yaml` |
 | RHACS | `apps/hub/rhacs-central/base/subscription.yaml` |
 | Quay | `apps/hub/quay/base/subscription.yaml` |
 | Developer Hub | `apps/hub/rhdh/base/subscription.yaml` |
