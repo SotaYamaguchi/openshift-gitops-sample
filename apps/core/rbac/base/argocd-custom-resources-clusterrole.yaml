@@ -32,6 +32,10 @@ rules:
   - apiGroups: [external-secrets.io]
     resources: [clustersecretstores, externalsecrets]
     verbs: [create, update, patch, delete]
+  # External Secrets Operator Config (operand 起動用)
+  - apiGroups: [operator.openshift.io]
+    resources: [externalsecretsconfigs]
+    verbs: [create, update, patch, delete]
   # ServiceAccount (ESO IRSA 用)
   - apiGroups: [""]
     resources: [serviceaccounts]
