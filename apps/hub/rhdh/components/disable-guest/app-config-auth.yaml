@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-auth
+  namespace: rhdh
+data:
+  app-config-auth.yaml: |
+    auth:
+      environment: production
+      providers:
+        guest:
+          dangerouslyAllowOutsideDevelopment: false

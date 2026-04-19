@@ -1,4 +1,4 @@
-apiVersion: rhdh.redhat.com/v1alpha3
+apiVersion: rhdh.redhat.com/v1alpha4
 kind: Backstage
 metadata:
   name: developer-hub
@@ -11,5 +11,22 @@ spec:
     replicas: 1
     route:
       enabled: true
+  # リソース設定: Small-scale (5千エンティティ以下) 向け
+  # ref: https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/about_red_hat_developer_hub/index
+  # ref: https://access.redhat.com/solutions/7078954
+  deployment:
+    patch:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: backstage-backend
+                resources:
+                  requests:
+                    cpu: "500m"
+                    memory: "1Gi"
+                  limits:
+                    cpu: "2"
+                    memory: "4Gi"
   database:
     enableLocalDb: true

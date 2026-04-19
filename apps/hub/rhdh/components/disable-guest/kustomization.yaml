@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Guest ログインを無効化する
+# 本番環境では Guest アクセスを無効にし、認証プロバイダ (Keycloak 等) を設定すること
+# ref: https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.9/html-single/authentication_in_red_hat_developer_hub/index
+
+resources:
+  - app-config-auth.yaml
